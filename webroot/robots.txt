@@ -1,1 +1,3 @@
-DEMO
+# robotstxt.org/
+
+User-agent: *
