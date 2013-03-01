@@ -1,135 +1,164 @@
 (function($){
-    var practice = {
-        completed:[],
-        correct:0,
-        attempted:0,
-        getInt: function(){
-          return Math.floor(Math.random() * this.content.length);
-        },
-        init: function(data){
-            // load cookie
-            var context = this;
-            context.content = data;
-            context.$audio = $("<audio>", {
-                id: "pronunciation",
-                preload: "auto"
-            }).appendTo("body");
-            $("<audio>", {
-                id: "bell",
-                preload: "auto",
-                src: "/sounds/bell.mp3"
-            }).appendTo("body");
-            $("<audio>", {
-                id: "buzz",
-                preload: "auto",
-                src: "/sounds/buzzer.mp3"
-            }).appendTo("body");
-            context.$msg = $("<div>", {
-                id: "msg"
-            }).appendTo("body")
-                .append(
-                    $("<p>", {
-                        click: function(e){
-                            e.preventDefault();
-                            context.quiz();
-                        }
-                    })
-                    .append($("<i>", {"class":"icon-refresh"}))
-                    .append($("<span>", {id: "positive", "class": "feedback", text: "correct"}))
-                    .append($("<span>", {id: "negative", "class": "feedback", text: "wrong"}))
-                );
-            context.$status = $("<div>", {
-                id: "status",
-                html: 'Attempted: <span id="attempted">0</span> Correct: <span id="correct">0</span>'
-            }).appendTo("body");
-            context.$q = $("<p>", {
-                id: "q"
-            }).appendTo("body");
-            context.$text = $("<span>").appendTo(context.$q);
-            context.$listen = $("<i>", {
-                "class": "icon-play-circle",
-                click: function(){
-                    var audio = document.getElementById("pronunciation");
-                    audio.currentTime = 0;
-                    audio.play();
-                }
-            }).prependTo(context.$q);
-            context.$a = $("<ul>", {
-                id: "a"
-            }).appendTo("body");
-            context.quiz();
-        },
-        reset: function(){
-            var context = this;
-            context.$msg.removeAttr("class");
-            context.$text.empty();
-            context.$a.removeAttr("class").empty();
-            return context;
-        },
-        quiz: function(){
-            var context = this.reset();
-            var index;
-            var list = [];
-            do {
-                index=context.getInt();
-            } while ($.inArray(index, context.completed) !== -1);
-            var item = context.content[index];
-            context.$text.html(item.untranslated);
-            context.$audio.attr("src", item.pronunciation);
-            list.push(item.translated);
-            for(var i=0; i<3; i++){
-                list.push(context.content[context.getInt()].translated);
+  var practice = {
+    completed:[],
+    cookieName: "1kwords_espanol",
+    correct:0,
+    attempted:0,
+    getInt: function(){
+      return Math.floor(Math.random() * this.content.length);
+    },
+    init: function(data){
+      var context = this;
+      context.content = data;
+      $.cookie.json = true;
+      context.loadCookie();
+      context.ui();
+      context.quiz();
+    },
+    play: function(id){
+      var audio = document.getElementById(id);
+      audio.currentTime = 0;
+      audio.play();
+    },
+    reset: function(){
+      var context = this;
+      context.$msg.removeAttr("class");
+      context.$text.empty();
+      context.$a.removeAttr("class").empty();
+      return context;
+    },
+    ui: function(){
+      var context = this;
+      context.$pronunciation = context.build.audio({id: "pronunciation"});
+      context.$success = context.build.audio({ id: "bell", src: "/sounds/bell.mp3" });
+      context.$fail = context.build.audio({ id: "buzz", src: "/sounds/buzzer.mp3" });
+      context.$msg = $("<div>", { id: "msg" }).appendTo("body")
+        .append(
+          $("<p>", {
+            click: function(e){
+              e.preventDefault();
+              context.quiz();
             }
-            $.each(list.shuffle(), function(i,v){
-                $("<li>", {
-                    html: v,
-                    click: function(e){
-                        var $this = $(this);
-                        e.preventDefault();
-                        if(!context.$a.hasClass("answered")){
-                            context.$a.addClass("answered");
-                            context.attempted++;
-                            var audio;
-                            if($this.data("answer")){
-                                context.completed.push(index);
-                                context.correct++;
-                                $this.addClass("correct");
-                                context.feedback("correct");
-                                audio = document.getElementById("bell");
-                                audio.currentTime = 0;
-                                audio.play();
-                            } else {
-                                audio = document.getElementById("buzz");
-                                audio.currentTime = 0;
-                                audio.play();
-                                $this.addClass("chosen").siblings().each(function(){
-                                    $(this).addClass($(this).data("answer")? "correct" : "unchosen" );
-                                });
-                                context.feedback("incorrect");
-                            }
-                        }
-                    }
-                }).data("answer", v === item.translated).appendTo(context.$a);
-            });
-        },
-        feedback: function(type){
-            var context = this;
-            context.$msg.addClass(type);
-            $('#attempted').text(context.attempted);
-            $('#correct').text(context.correct);
-            context.updateCookie();
-        },
-        updateCookie: function(){
-            //update cookie;
+          })
+          .append($("<i>", {"class":"icon-repeat"}))
+          .append($("<span>", {id: "positive", "class": "feedback", text: "correct"}))
+          .append($("<span>", {id: "negative", "class": "feedback", text: "wrong"}))
+        );
+      context.$status = $("<div>", {
+        id: "status",
+        html: '<p>Attempted: <span id="attempted">'+context.attempted+'</span></p> <p>Correct: <span id="correct">'+context.correct+'</span></p>'
+      }).appendTo("body");
+      context.$clear = $("<span>", {
+        id:"clear",
+        html: 'Clear Progress <i class="icon-remove-sign"></i>',
+        click: function(e){
+          e.preventDefault();
+          context.clearCookie();
         }
-    };
-    $.getJSON("/languages/espanol.json", function(data){
-        (function(debug){
-            if(debug){
-                console.dir(data);
+      }).appendTo(context.$status);
+      context.$q = $("<p>", { id: "q" }).appendTo("body");
+      context.$text = $("<span>").appendTo(context.$q);
+      context.$listen = $("<i>", {
+        "class": "icon-play-circle",
+        click: function(){
+          context.play(context.$pronunciation.attr('id'));
+        }
+      }).prependTo(context.$q);
+      context.$a = $("<ul>", { id: "a" }).appendTo("body");
+      return context;
+    },
+    quiz: function(){
+      var context = this.reset();
+      var index;
+      var list = [];
+      do {
+        index=context.getInt();
+      } while ($.inArray(index, context.completed) !== -1);
+      var item = context.content[index];
+      context.$text.html(item.untranslated);
+      context.$pronunciation.attr("src", item.pronunciation);
+      list.push(item.translated);
+      for(var i=0; i<3; i++){
+        var text;
+        do {
+          text = context.content[context.getInt()].translated;
+        } while ($.inArray(text, list) !== -1);
+        list.push(text);
+      }
+      $.each(list.shuffle(), function(i,v){
+        $("<li>", {
+          html: '<i class="icon-check-empty"></i>'+v,
+          click: function(e){
+            var $this = $(this);
+            e.preventDefault();
+            if(!context.$a.hasClass("answered")){
+              context.$a.addClass("answered");
+              $("i", this).attr("class", "icon-check");
+              if($this.data("answer")){
+                context.completed.push(index);
+                $this.addClass("correct").siblings().addClass("unchosen");
+                context.feedback("correct");
+              } else {
+                $this.addClass("chosen").siblings().each(function(){
+                  $(this).addClass($(this).data("answer")? "correct" : "unchosen" );
+                });
+                context.feedback("incorrect");
+              }
             }
-        })(false);
-        $("#loading").hide();
-        practice.init(data);
-    });
+          }
+        }).data("answer", v === item.translated).appendTo(context.$a);
+      });
+      return context;
+    },
+    feedback: function(type){
+      var context = this;
+      context.attempted++;
+      context.$msg.addClass(type);
+      if (type === "correct"){
+        context.play(context.$success.attr("id"));
+        context.correct++;
+      }else{
+        context.play(context.$fail.attr("id"));
+      }
+      $('#attempted').text(context.attempted);
+      $('#correct').text(context.correct);
+      context.setCookie();
+      return context;
+    },
+    clearCookie: function(){
+      var context = this;
+      context.completed = [];
+      context.attempted = 0;
+      $("#attempted").add("#correct").text(0);
+      context.correct = 0;
+      $.cookie(this.cookieName, null);
+      context.quiz();
+    },
+    loadCookie: function(){
+      var context = this;
+      var cookie = $.cookie(context.cookieName);
+      return $.extend(true, context, cookie);
+    },
+    setCookie: function(){
+      var context = this;
+      return $.cookie(context.cookieName, {
+        "completed": context.completed,
+        "attempted": context.attempted,
+        "correct": context.correct
+      });
+    },
+    build: {
+      audio: function(attr){
+        return $("<audio>", {
+          preload: "auto",
+          id: attr.id || "",
+          src: attr.src || ""
+        }).appendTo("body");
+      }
+    }
+  };
+  $.getJSON("/languages/espanol.json", function(data){
+    $("#loading").hide();
+    practice.init(data);
+  });
 })(jQuery);

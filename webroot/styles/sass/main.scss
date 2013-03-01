@@ -2,7 +2,7 @@
 @import "compass/css3";
 @import "font-awesome";
 
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700);
 
 //Variables
 $golden: 1.61803399em;
@@ -38,7 +38,27 @@ html{
 body{
 	line-height:$golden;
 }
-
+header{
+	left:25%;
+	position:fixed;
+	top:2em;
+	width:50%;
+	h1{
+		display:inline;
+		font-size:2em;
+		font-weight:700;
+		line-height:1em;
+		margin-right:.5em;
+		position:absolute;
+		right:100%;
+		text-align:right;
+		top:0;
+	}
+	p{
+		margin:0 0 .5em;
+		em{ font-style:oblique; }
+	}
+}
 #loading{
 	-moz-animation:spin 1.5s infinite linear;
 	-webkit-animation:spin 1.5s infinite linear;
@@ -77,17 +97,16 @@ body{
 	&.incorrect p{ background-color:$fail; }
 	p{
 		@include border-radius(1em);
-		@include text-shadow(rgba(255,255,255,.5) 1px 1px 0);
 
 		color:#fff;
 		cursor:pointer;
 		display:inline-block;
 		font-size:2em;
 		font-weight:700;
+		left:0;
 		margin-top:-.5em;
 		padding:.5em .5em .5em 1.75em;
 		position:absolute;
-		left:0;
 		text-transform: uppercase;
 		top:0;
 		white-space:nowrap;
@@ -102,7 +121,7 @@ body{
 }
 
 #q{
-	font-size:4em;
+	font-size:3em;
 	left:25%;
 	margin-top:-1em;
 	max-width: 50%;
@@ -125,12 +144,12 @@ body{
 
 #a{
 	left:25%;
-	margin:0;
+	margin:0 0 0 1.75em;
 	position:fixed;
 	top:50%;
 	width:50%;
-	&.answered li:hover{
-		cursor:default;
+	&.answered{
+		li:hover{ cursor:default; }
 	}
 	li{
 		display:inline;
@@ -138,18 +157,46 @@ body{
 		margin-bottom:1em;
 		width:50%;
 		&:hover{ cursor:pointer; }
-		&.correct{ color:$success; }
-		&.chosen{ color:$fail; }
-		&.unchosen{ opacity:.25; }
+		&.correct{ color:$success; font-weight:700; }
+		&.chosen{ color:$fail; font-style:normal; }
+		&.unchosen{ @include opacity(.25); }
+		i{
+			@include block;
+			float:left;
+			line-height:inherit;
+			margin-left:-1.75em;
+		}
 	}
 }
 
 #status{
-	background:#dadada;
-	padding:1em 0;
-	position:fixed;
+	background:#efefef;
+	border-top:1px solid #dadada;
 	bottom:0;
 	left:0;
-	width:100%;
+	padding:1em 0;
+	position:fixed;
 	text-align:center;
+	width:100%;
+	p{
+		display:inline-block;
+		margin:0 1em;
+		span{
+			font-weight:700;
+		}
+	}
+	&:hover #clear{display:block;}
+	#clear{
+		display:none;
+		line-height:1em;
+		margin-right:1em;
+		margin-top:-.5em;
+		position:absolute;
+		right:0;
+		top:50%;
+		&:hover{
+			color:#666;
+			cursor:pointer;
+		};
+	}
 }
