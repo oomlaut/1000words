@@ -38,6 +38,7 @@ html{
 body{
 	line-height:$golden;
 }
+
 a{
 	text-decoration: none;
 	color:#666;
@@ -60,6 +61,11 @@ header{
 		right:100%;
 		text-align:right;
 		top:0;
+		.lang{
+			color:#999;
+			display:block;
+			line-height:1.5em;
+		}
 	}
 	p{
 		margin:0 0 .5em;
@@ -211,6 +217,7 @@ header{
 
 a#project{
 	background:rgba(255,255,255,.75);
+	color:#c00;
 	display:block;
 	padding:1em;
 	position:absolute;
