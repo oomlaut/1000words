@@ -38,6 +38,13 @@ html{
 body{
 	line-height:$golden;
 }
+a{
+	text-decoration: none;
+	color:#666;
+	&:hover{
+		color:#999;
+	}
+}
 header{
 	left:25%;
 	position:fixed;
@@ -199,5 +206,24 @@ header{
 			color:#666;
 			cursor:pointer;
 		};
+	}
+}
+
+a#project{
+	background:rgba(255,255,255,.75);
+	display:block;
+	padding:1em;
+	position:absolute;
+	right:0;
+	top:0;
+	z-index:99;
+	i{
+		margin-left:.5em;
+	}
+	span{
+		display:none;
+	}
+	&:hover span{
+		display:inline;
 	}
 }
